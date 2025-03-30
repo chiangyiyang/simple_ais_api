@@ -183,6 +183,11 @@ def get_ship_history():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+# === 網頁：顯示船舶位置地圖 ===
+@app.route('/map')
+def show_map():
+    return app.send_static_file('ships_map.html')
+
 # === 啟動 Flask 伺服器 ===
 if __name__ == '__main__':
     app.run(port=5000)

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+
+<head>
+    <meta charset="UTF-8">
+    <title>船舶位置地圖</title>
+    <!-- Include the CesiumJS JavaScript and CSS files -->
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.126/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.126/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <style>
+        html,
+        body,
+        #cesiumContainer {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="cesiumContainer"></div>
+    <script>
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJiYWU1ZDY3ZC1mYzM1LTQwMTUtYWEwMy1hZjBlZjdlNmRmZTUiLCJpZCI6MjQ5ODg1LCJpYXQiOjE3Mjk1ODExNjJ9.PMxlzgfO9AnBGlodb-qOO8DFhUMOFc3QMbfFqVKk7xY';
+
+        // 初始化 Cesium Viewer
+        const viewer = new Cesium.Viewer('cesiumContainer', {
+            terrain: Cesium.Terrain.fromWorldTerrain(),
+        });
+
+        // 取得船舶數據並繪製到地圖上
+        async function loadShipsData() {
+            try {
+                // const response = await fetch('/api/ais/history?shipname=MACCOA');
+                const response = await fetch('/api/ais/history?shipname=TAIPEI TRIUMPH');
+                const data = await response.json();
+                // console.log(data);
+
+                Object.values(data).forEach(ship => {
+                    const position = Cesium.Cartesian3.fromDegrees(ship.lon, ship.lat);
+
+                    viewer.entities.add({
+                        position: position,
+                        // billboard: {
+                        //     image: 'https://lib.cesium.com/cesium-1.107/Sandcastle/images/ship.png',
+                        //     width: 64,
+                        //     height: 64,
+                        //     scale: 0.5
+                        // },
+                        label: {
+                            text: ship.shipname,
+                            font: '14px sans-serif',
+                            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                            outlineWidth: 2,
+                            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                            pixelOffset: new Cesium.Cartesian2(0, -32),
+                            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                            distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
+                                0.0,         // minimum distance to show label
+                                500000.0     // maximum distance to show label
+                            )
+                        },
+                        description: `
+                            <table>
+                                <tr><td>船名:</td><td>${ship.shipname}</td></tr>
+                                <tr><td>速度:</td><td>${ship.speed} 節</td></tr>
+                                <tr><td>航向:</td><td>${ship.course}°</td></tr>
+                                <tr><td>目的地:</td><td>${ship.destination}</td></tr>
+                                <tr><td>船舶類型:</td><td>${ship.shiptype}</td></tr>
+                                <tr><td>最後更新:</td><td>${new Date(ship.timestamp).toLocaleString()}</td></tr>
+                            </table>
+                        `
+                    });
+                });
+
+                // 自動調整視角到所有船舶的位置
+                const positions = Object.values(data).map(ship =>
+                    Cesium.Cartesian3.fromDegrees(ship.lon, ship.lat)
+                );
+                viewer.zoomTo(viewer.entities);
+
+            } catch (error) {
+                console.error('Error loading ships data:', error);
+            }
+        }
+
+        // 每分鐘更新一次船舶位置
+        loadShipsData();
+        setInterval(loadShipsData, 60000);
+    </script>
+</body>
+
+</html>
