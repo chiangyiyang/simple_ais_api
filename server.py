@@ -177,6 +177,17 @@ def get_ship_history():
             end = datetime.fromisoformat(request.args.get("end"))
             query = query.filter(ShipAIS.timestamp.between(start, end))
 
+        if (request.args.get("min_lat") and request.args.get("max_lat") and
+            request.args.get("min_lon") and request.args.get("max_lon")):
+            min_lat = safe_float(request.args.get("min_lat"))
+            max_lat = safe_float(request.args.get("max_lat"))
+            min_lon = safe_float(request.args.get("min_lon"))
+            max_lon = safe_float(request.args.get("max_lon"))
+            query = query.filter(
+                ShipAIS.lat.between(min_lat, max_lat),
+                ShipAIS.lon.between(min_lon, max_lon)
+            )
+
         # results = [r.to_dict() for r in query.order_by(ShipAIS.timestamp.desc()).limit(500)]
         results = [r.to_dict() for r in query.order_by(ShipAIS.timestamp.desc())]
         return jsonify(results)

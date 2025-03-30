@@ -21,19 +21,47 @@
 </head>
 
 <body>
+    <div id="queryInfo"
+        style="position: absolute; top: 20px; left: 20px; z-index: 1000; background: white; padding: 10px; border-radius: 5px; opacity: 0.5;">
+    <style>
+        .degInput {
+            width: 130px;
+        }
+    </style>
+        <h3>船舶查詢</h3>
+        <label>船名: <input type="text" id="shipname" style="width: 162px;"></label><br>
+        <label>最小緯度: <input class="degInput" type="number" id="minLat" step="0.1" value="23"></label><br>
+        <label>最大緯度: <input class="degInput" type="number" id="maxLat" step="0.1" value="30"></label><br>
+        <label>最小經度: <input class="degInput" type="number" id="minLon" step="0.1" value="110"></label><br>
+        <label>最大經度: <input class="degInput" type="number" id="maxLon" step="0.1" value="125"></label><br>
+        <label>開始時間: <br><input type="datetime-local" id="start" value="2025-03-30T13:33:00" style="width: 205px;"></label><br>
+        <label>結束時間: <br><input type="datetime-local" id="end" value="2025-03-30T13:53:00" style="width: 205px;"></label><br>
+        <button onclick="loadShipsData()">查詢</button>
+    </div>
     <div id="cesiumContainer"></div>
     <script>
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJiYWU1ZDY3ZC1mYzM1LTQwMTUtYWEwMy1hZjBlZjdlNmRmZTUiLCJpZCI6MjQ5ODg1LCJpYXQiOjE3Mjk1ODExNjJ9.PMxlzgfO9AnBGlodb-qOO8DFhUMOFc3QMbfFqVKk7xY';
 
         // 初始化 Cesium Viewer
         const viewer = new Cesium.Viewer('cesiumContainer', {
-            terrain: Cesium.Terrain.fromWorldTerrain(),
+            // terrain: Cesium.Terrain.fromWorldTerrain(),
+            animation: false,          // ⛔ Disable animation controls
+            timeline: false,           // ⛔ Disable timeline
+            baseLayerPicker: false,    // ⛔ Disable base layer selector
+            geocoder: false,           // ⛔ Disable search box
+            homeButton: false,         // ⛔ Disable home button
+            // infoBox: false,            // ⛔ Disable info box
+            sceneModePicker: false,    // ⛔ Disable 2D/3D mode switch
+            navigationHelpButton: false, // ⛔ Disable help button
+            fullscreenButton: false,   // ⛔ Disable fullscreen button
+            selectionIndicator: false, // ⛔ Disable selection highlight
+            shouldAnimate: false       // ⛔ Don't auto-play animations
         });
 
         function getArrowPolyline(longitude, latitude, heading, length) {
             // console.log(heading);
             // Convert heading to radians and calculate the base position
-            const headingRad = Cesium.Math.toRadians(90-heading);
+            const headingRad = Cesium.Math.toRadians(90 - heading);
             const baseLength = (1 / 7) * length;
 
             const baseLongitude = longitude - (baseLength * Math.cos(headingRad)) / (111320 * Math.cos(Cesium.Math.toRadians(latitude)));
@@ -72,10 +100,38 @@
         async function loadShipsData() {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
-                const shipname = urlParams.get('shipname') || '';
-                const response = await fetch(`/api/ais/history${shipname ? `?shipname=${encodeURIComponent(shipname)}` : ''}`);
+                // const shipname = urlParams.get('shipname') || '';
+
+                const shipname = document.getElementById('shipname').value;
+                const startTime = document.getElementById('start').value;
+                const endTime = document.getElementById('end').value;
+                const minLat = document.getElementById('minLat').value;
+                const maxLat = document.getElementById('maxLat').value;
+                const minLon = document.getElementById('minLon').value;
+                const maxLon = document.getElementById('maxLon').value;
+
+                const queryParams = new URLSearchParams();
+                if (shipname) queryParams.set('shipname', shipname);
+                if (startTime && endTime) {
+                    queryParams.set('start', startTime.replace('T', ' ') + '.000');
+                    queryParams.set('end', endTime.replace('T', ' ') + '.000');
+                }
+                if (minLat && maxLat) {
+                    queryParams.set('min_lat', minLat);
+                    queryParams.set('max_lat', maxLat);
+                }
+                if (minLon && maxLon) {
+                    queryParams.set('min_lon', minLon);
+                    queryParams.set('max_lon', maxLon);
+                }
+
+                console.log(queryParams.toString());
+
+                const response = await fetch(`/api/ais/history?${queryParams.toString()}`);
                 const data = await response.json();
-                // console.log(data);
+                console.log(data);
+
+                viewer.entities.removeAll();
 
                 Object.values(data).forEach(ship => {
                     const position = Cesium.Cartesian3.fromDegrees(ship.lon, ship.lat);
