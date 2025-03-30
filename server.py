@@ -5,16 +5,25 @@ import cloudscraper
 import json
 from datetime import datetime
 
-# === 設定 Flask App & SQLite ===
+# === Flask App & SQLite 設定 ===
+# 初始化 Flask 應用程式
 app = Flask(__name__)
+
+# 設定 SQLite 資料庫路徑
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ais_data.db'
+
+# 禁用 SQLAlchemy 事件追蹤，避免佔用額外記憶體
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# 初始化 SQLAlchemy ORM
 db = SQLAlchemy(app)
 
 # === 失敗記錄檔案名稱 ===
+# 用於儲存資料抓取過程中失敗的記錄
 FAILED_LOG_FILE = "failed_records.json"
 
 # === 工具：安全轉 float ===
+# 將輸入值安全轉換為浮點數，若轉換失敗則返回預設值
 def safe_float(value, default=0.0):
     try:
         return float(value)
@@ -22,6 +31,7 @@ def safe_float(value, default=0.0):
         return default
 
 # === 工具：紀錄失敗資料 ===
+# 將失敗的資料記錄寫入 JSON 檔案中，包含時間戳記、錯誤訊息和失敗的資料
 def log_failed_record(record_data, error_message):
     try:
         with open(FAILED_LOG_FILE, "a", encoding="utf-8") as f:
@@ -34,6 +44,7 @@ def log_failed_record(record_data, error_message):
         print(f"[ERROR] Failed to write to failed log: {e}")
 
 # === SQLite 資料表定義 ===
+# 定義船舶 AIS 資料表的結構
 class ShipAIS(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
