@@ -30,25 +30,62 @@
             terrain: Cesium.Terrain.fromWorldTerrain(),
         });
 
+        function getArrowPolyline(longitude, latitude, heading, length) {
+            // console.log(heading);
+            // Convert heading to radians and calculate the base position
+            const headingRad = Cesium.Math.toRadians(90-heading);
+            const baseLength = (1 / 7) * length;
+
+            const baseLongitude = longitude - (baseLength * Math.cos(headingRad)) / (111320 * Math.cos(Cesium.Math.toRadians(latitude)));
+            const baseLatitude = latitude - (baseLength * Math.sin(headingRad)) / 110540;
+
+            // Calculate the coordinates for the arrow wings
+            const angle = 165;
+            const leftWingLongitude = longitude + (length * 0.2 * Math.cos(headingRad + Cesium.Math.toRadians(angle))) / (111320 * Math.cos(Cesium.Math.toRadians(latitude)));
+            const leftWingLatitude = latitude + (length * 0.2 * Math.sin(headingRad + Cesium.Math.toRadians(angle))) / 110540;
+
+            const rightWingLongitude = longitude + (length * 0.2 * Math.cos(headingRad - Cesium.Math.toRadians(angle))) / (111320 * Math.cos(Cesium.Math.toRadians(latitude)));
+            const rightWingLatitude = latitude + (length * 0.2 * Math.sin(headingRad - Cesium.Math.toRadians(angle))) / 110540;
+
+            // viewer.flyTo(entity);
+            return {
+                positions: Cesium.Cartesian3.fromDegreesArray(
+                    [
+                        longitude, latitude, // Tip of the arrow
+                        leftWingLongitude, leftWingLatitude, // Left wing of the arrow
+                        baseLongitude, baseLatitude, // Base of the arrow
+                        rightWingLongitude, rightWingLatitude, // Right wing of the arrow
+                        longitude, latitude, // Tip of the arrow
+                    ]
+                ),
+                width: 3,
+                material: Cesium.Color.RED,
+                clampToGround: true,
+                distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
+                    0.0,          // min distance to show
+                    30000000.0      // max distance to show
+                )
+            };
+        }
+
         // 取得船舶數據並繪製到地圖上
         async function loadShipsData() {
             try {
-                // const response = await fetch('/api/ais/history?shipname=MACCOA');
-                const response = await fetch('/api/ais/history?shipname=TAIPEI TRIUMPH');
+                const urlParams = new URLSearchParams(window.location.search);
+                const shipname = urlParams.get('shipname') || '';
+                const response = await fetch(`/api/ais/history${shipname ? `?shipname=${encodeURIComponent(shipname)}` : ''}`);
                 const data = await response.json();
                 // console.log(data);
 
                 Object.values(data).forEach(ship => {
                     const position = Cesium.Cartesian3.fromDegrees(ship.lon, ship.lat);
 
+                    // 計算箭頭終點位置
+                    const arrowLength = 10 + ship.speed * 100; // 航速影響箭頭長度
+
                     viewer.entities.add({
                         position: position,
-                        // billboard: {
-                        //     image: 'https://lib.cesium.com/cesium-1.107/Sandcastle/images/ship.png',
-                        //     width: 64,
-                        //     height: 64,
-                        //     scale: 0.5
-                        // },
+                        polyline: getArrowPolyline(ship.lon, ship.lat, parseFloat(ship.course), arrowLength),
                         label: {
                             text: ship.shipname,
                             font: '14px sans-serif',
