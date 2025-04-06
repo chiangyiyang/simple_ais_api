@@ -1,3 +1,4 @@
+import os
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -10,7 +11,8 @@ from datetime import datetime
 app = Flask(__name__)
 
 # 設定 SQLite 資料庫路徑
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ais_data.db'
+os.makedirs('db', exist_ok=True)  # 確保 db 資料夾存在
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.abspath('db/ais_data.db')
 
 # 禁用 SQLAlchemy 事件追蹤，避免佔用額外記憶體
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -195,7 +197,7 @@ def get_ship_history():
         return jsonify({"error": str(e)}), 400
 
 # === 網頁：顯示船舶位置地圖 ===
-@app.route('/map')
+@app.route('/')
 def show_map():
     return app.send_static_file('ships_map.html')
 
