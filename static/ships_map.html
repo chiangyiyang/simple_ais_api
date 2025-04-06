@@ -23,11 +23,11 @@
 <body>
     <div id="queryInfo"
         style="position: absolute; top: 20px; left: 20px; z-index: 1000; background: white; padding: 10px; border-radius: 5px; opacity: 0.5;">
-    <style>
-        .degInput {
-            width: 130px;
-        }
-    </style>
+        <style>
+            .degInput {
+                width: 130px;
+            }
+        </style>
         <h3>船舶查詢</h3>
         <label>船名: <input type="text" id="shipname" style="width: 162px;"></label><br>
         <label>最小緯度: <input class="degInput" type="number" id="minLat" step="0.1" value="23"></label><br>
@@ -95,6 +95,21 @@
                 )
             };
         }
+
+
+        function setDefaultTimeRange() {
+            const now = new Date();
+            const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+
+            function toDatetimeLocalString(date) {
+                return date.toISOString().slice(0, 16); // 格式為 "YYYY-MM-DDTHH:mm"
+            }
+
+            document.getElementById('start').value = toDatetimeLocalString(oneHourAgo);
+            document.getElementById('end').value = toDatetimeLocalString(now);
+        }
+
+        setDefaultTimeRange();
 
         // 取得船舶數據並繪製到地圖上
         async function loadShipsData() {
