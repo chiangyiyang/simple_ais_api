@@ -5,10 +5,14 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import cloudscraper
 import json
 from datetime import datetime
+from flask_cors import CORS
 
 # === Flask App & SQLite 設定 ===
 # 初始化 Flask 應用程式
 app = Flask(__name__)
+
+# 對所有路由都開放所有來源
+CORS(app)
 
 # 設定 SQLite 資料庫路徑
 os.makedirs('db', exist_ok=True)  # 確保 db 資料夾存在
