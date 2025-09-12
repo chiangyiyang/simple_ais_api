@@ -156,10 +156,17 @@ def fetch_data():
 
                 # 檢查剛存入的紀錄是否在 RECT 範圍內，若在則列印 SHIP_ID, SHIPNAME, LON, LAT
                 try:
+                    msg=''
                     inserted = ShipAIS.query.filter_by(source=key, timestamp=timestamp).all()
                     for rec in inserted:
                         if in_rectangle(rec, RECT):
                             print(f"[ALARM] {rec.ship_id} | {rec.shipname} | {rec.lon} | {rec.lat}")
+                            msg+=f"[ALARM] {rec.ship_id} | {rec.shipname} | {rec.lon} | {rec.lat}\n"
+                    if msg:
+                        from line_msg import send_msg
+                        LINE_USER_ID=os.getenv("LINE_USER_ID")
+                        if LINE_USER_ID:
+                            send_msg(LINE_USER_ID, msg)
                 except Exception as e_check:
                     print(f"[WARN] Alarm check failed for {key}: {e_check}")
 
