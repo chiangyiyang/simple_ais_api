@@ -6,6 +6,7 @@ import cloudscraper
 import json
 from datetime import datetime
 from flask_cors import CORS
+from alarm import in_rectangle
 
 # === Flask App & SQLite 設定 ===
 # 初始化 Flask 應用程式
@@ -103,6 +104,14 @@ urls = [
     "https://www.marinetraffic.com/getData/get_data_json_4/z:2/X:1/Y:1/station:0",
 ]
 
+# 監控矩形範圍（範例預設：台灣附近，請依需求修改）
+RECT = {
+    "min_lat": 21.5,
+    "max_lat": 25.5,
+    "min_lon": 119.5,
+    "max_lon": 122.5
+}
+
 scraper = cloudscraper.create_scraper()
 
 # === 抓資料並存入 DB ===
@@ -144,6 +153,15 @@ def fetch_data():
                         print(f"[WARN] Failed to parse ship row: {row.get('SHIPNAME')} - {row_error}")
 
                 db.session.commit()
+
+                # 檢查剛存入的紀錄是否在 RECT 範圍內，若在則列印 SHIP_ID, SHIPNAME, LON, LAT
+                try:
+                    inserted = ShipAIS.query.filter_by(source=key, timestamp=timestamp).all()
+                    for rec in inserted:
+                        if in_rectangle(rec, RECT):
+                            print(f"[ALARM] {rec.ship_id} | {rec.shipname} | {rec.lon} | {rec.lat}")
+                except Exception as e_check:
+                    print(f"[WARN] Alarm check failed for {key}: {e_check}")
 
             except Exception as e:
                 print(f"Error fetching from {url}: {e}")
