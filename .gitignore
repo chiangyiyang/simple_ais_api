@@ -2,3 +2,5 @@ env
 jsons
 instance
 db
+.env
+__pycache__
