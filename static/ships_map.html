@@ -184,9 +184,9 @@
                 });
 
                 // 自動調整視角到所有船舶的位置
-                const positions = Object.values(data).map(ship =>
-                    Cesium.Cartesian3.fromDegrees(ship.lon, ship.lat)
-                );
+                // const positions = Object.values(data).map(ship =>
+                //     Cesium.Cartesian3.fromDegrees(ship.lon, ship.lat)
+                // );
                 viewer.zoomTo(viewer.entities);
 
             } catch (error) {
