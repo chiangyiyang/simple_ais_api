@@ -6,7 +6,7 @@ import os
 db = SQLAlchemy()
 
 def create_app(config_object=None):
-    app = Flask(__name__, static_folder='static', static_url_path='/static')
+    app = Flask(__name__, static_folder='../static', static_url_path='/static')
 
     # 載入設定
     if isinstance(config_object, str):
