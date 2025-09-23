@@ -1,4 +1,7 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # === 抓取區塊 URL ===
 URLS = [
@@ -21,6 +24,8 @@ FAILED_LOG_FILE = os.getenv("FAILED_LOG_FILE", "failed_records.json")
 
 # LINE 設定（可由環境變數提供）
 LINE_USER_ID = os.getenv("LINE_USER_ID")
+if not LINE_USER_ID:
+    raise RuntimeError("LINE_USER_ID not set in environment.")
 
 # 抓取間隔（分鐘）
 FETCH_INTERVAL_MINUTES = int(os.getenv("FETCH_INTERVAL_MINUTES", "10"))
