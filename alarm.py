@@ -1,3 +1,5 @@
+from shapely.geometry import Point, Polygon
+
 def in_rectangle(ship, rect):
     """
     判斷船舶是否位於矩形範圍內。
@@ -18,5 +20,35 @@ def in_rectangle(ship, rect):
     try:
         return (rect['min_lat'] <= lat <= rect['max_lat'] and
                 rect['min_lon'] <= lon <= rect['max_lon'])
+    except Exception:
+        return False
+
+def in_polygon(point, polygon):
+    """
+    判斷點是否在多邊形內（包含邊界）。
+    point: (x, y) 座標
+    polygon: 頂點清單 [(x1,y1), (x2,y2), ...]
+    回傳 True/False（包含邊界視為在內）
+    使用 shapely，若發生例外或輸入不合法回傳 False
+    """
+    try:
+        # 基本結構與型別檢查
+        if not (isinstance(point, (list, tuple)) and len(point) == 2):
+            return False
+        if not (isinstance(polygon, (list, tuple)) and len(polygon) >= 3):
+            return False
+
+        x, y = point
+        px = float(x)
+        py = float(y)
+
+        poly = Polygon([(float(px_), float(py_)) for px_, py_ in polygon])
+        if not poly.is_valid:
+            # 若多邊形無效（例如自交），視為 False
+            return False
+
+        pt = Point(px, py)
+        # 使用 covers 以包含邊界（contains 不包含邊界）
+        return poly.covers(pt)
     except Exception:
         return False
