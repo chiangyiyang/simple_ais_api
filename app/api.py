@@ -1,5 +1,7 @@
 from flask import jsonify, request
 from datetime import datetime
+import os
+import json
 from models import ShipAIS
 from config import URLS
 from utils import safe_float
@@ -47,6 +49,23 @@ def register_routes(app):
             return jsonify(results)
         except Exception as e:
             return jsonify({"error": str(e)}), 400
+
+    @app.route('/api/save_alarm_area', methods=['POST'])
+    def save_alarm_area():
+        """
+        接收 GeoJSON（FeatureCollection 或任意 JSON），並寫入 static/alarm_area.geojson
+        前端會 POST 完整 GeoJSON 物件
+        """
+        try:
+            geojson = request.get_json()
+            if not geojson:
+                return jsonify({"error": "no JSON body"}), 400
+            static_path = os.path.join(app.static_folder, 'alarm_area.geojson')
+            with open(static_path, 'w', encoding='utf-8') as f:
+                json.dump(geojson, f, ensure_ascii=False, indent=2)
+            return jsonify({"status": "ok"}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
     @app.route('/')
     def show_map():
