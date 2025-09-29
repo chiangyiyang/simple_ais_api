@@ -1,9 +1,9 @@
 from datetime import datetime
 from app import db, create_app
 from models import ShipAIS
-from config import URLS, RECT, LINE_USER_ID
+from config import POLYGON, URLS, RECT, LINE_USER_ID
 from utils import safe_float, log_failed_record, get_scraper
-from alarm import in_rectangle
+from alarm import in_polygon, in_rectangle
 from line_msg import send_msg
 import os
 
@@ -58,9 +58,16 @@ def fetch_data(app=None):
                     msg = ''
                     inserted = ShipAIS.query.filter_by(source=key, timestamp=timestamp).all()
                     for rec in inserted:
-                        if in_rectangle(rec, RECT):
-                            print(f"[ALARM] {rec.ship_id} | {rec.shipname} | {rec.lon} | {rec.lat}")
-                            msg += f"[ALARM] {rec.ship_id} | {rec.shipname} | {rec.lon} | {rec.lat}\n"
+                        # if in_rectangle(rec, RECT):
+                        #     print(f"[ALARM] {rec.ship_id} | {rec.shipname} | {rec.lon} | {rec.lat}")
+                        #     msg += f"[ALARM] {rec.ship_id} | {rec.shipname} | {rec.lon} | {rec.lat}\n"
+
+                        # check rec in polygon
+                        if in_polygon((rec.lon, rec.lat), POLYGON):
+                            print(f"[ALARM-POLY] {rec.ship_id} | {rec.shipname} | {rec.lon} | {rec.lat}")
+                            msg += f"[ALARM-POLY] {rec.ship_id} | {rec.shipname} | {rec.lon} | {rec.lat}\n"
+
+
                     if msg and LINE_USER_ID:
                         send_msg(LINE_USER_ID, msg)
                 except Exception as e_check:
