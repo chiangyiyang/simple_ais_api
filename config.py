@@ -19,6 +19,25 @@ RECT = {
     "max_lon": float(os.getenv("RECT_MAX_LON", 122.5)),
 }
 
+# 監控多邊形範圍（可選，預設 None，不啟用）
+# 格式：[(lon1, lat1), (lon2, lat2), (lon3, lat3), ...]
+POLYGON = None
+# load from ./static/alarm_area.geojson if exists
+import json
+if os.path.exists("./static/alarm_area.geojson"):
+    try:
+        with open("./static/alarm_area.geojson", "r") as f:
+            data = json.load(f)
+            # load from GeoJSON format
+            if data.get("type") == "FeatureCollection":
+                features = data.get("features", [])
+                if features:
+                    geom = features[0].get("geometry", {})
+                    if geom.get("type") == "Polygon":
+                        POLYGON = geom.get("coordinates", [[]])[0]
+    except Exception as e:
+        print(f"[WARN] Failed to load alarm_polygon.json: {e}")
+
 # 失敗記錄檔
 FAILED_LOG_FILE = os.getenv("FAILED_LOG_FILE", "failed_records.json")
 
