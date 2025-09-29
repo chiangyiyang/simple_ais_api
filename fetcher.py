@@ -64,8 +64,8 @@ def fetch_data(app=None):
 
                         # check rec in polygon
                         if in_polygon((rec.lon, rec.lat), POLYGON):
-                            print(f"[ALARM-POLY] {rec.ship_id} | {rec.shipname} | {rec.lon} | {rec.lat}")
-                            msg += f"[ALARM-POLY] {rec.ship_id} | {rec.shipname} | {rec.lon} | {rec.lat}\n"
+                            print(f"[ALARM-POLY] {rec.ship_id} | {rec.shipname} | {rec.lon} | {rec.lat} | https://jywkfjx5izym.space.minimax.io/?lat={rec.lat}&lon={rec.lon}&z=9&title={rec.shipname.replace(' ', '+')}%28{rec.ship_id}%29&desc=[ALARM-POLY]{rec.ship_id}|{rec.shipname.replace(' ', '+')}|{rec.lon}|{rec.lat}&icon=default")
+                            msg += f"[ALARM-POLY] {rec.ship_id} | {rec.shipname} | {rec.lon} | {rec.lat} | https://jywkfjx5izym.space.minimax.io/?lat={rec.lat}&lon={rec.lon}&z=9&title={rec.shipname.replace(' ', '+')}%28{rec.ship_id}%29&desc=[ALARM-POLY]{rec.ship_id}|{rec.shipname.replace(' ', '+')}|{rec.lon}|{rec.lat}&icon=default\n"
 
 
                     if msg and LINE_USER_ID:
