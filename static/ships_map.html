@@ -58,6 +58,29 @@
             shouldAnimate: false       // ⛔ Don't auto-play animations
         });
 
+        // 載入 alarm_area.geojson 並加入為 layer（若你的伺服器可在根目錄提供此檔案）
+        Cesium.GeoJsonDataSource.load('/static/alarm_area.geojson', { clampToGround: true })
+            .then(function (dataSource) {
+                viewer.dataSources.add(dataSource);
+                // 調整樣式：多邊形半透明填色與外框
+                dataSource.entities.values.forEach(function (entity) {
+                    if (Cesium.defined(entity.polygon)) {
+                        entity.polygon.material = Cesium.Color.RED.withAlpha(0.2);
+                        entity.polygon.outline = true;
+                        entity.polygon.outlineColor = Cesium.Color.RED;
+                    } else if (Cesium.defined(entity.polyline)) {
+                        entity.polyline.material = Cesium.Color.RED;
+                        entity.polyline.width = 2;
+                    } else if (Cesium.defined(entity.point)) {
+                        entity.point.pixelSize = 8;
+                        entity.point.color = Cesium.Color.RED;
+                    }
+                });
+            })
+            .catch(function (err) {
+                console.error('Failed to load alarm_area.geojson', err);
+            });
+
         function getArrowPolyline(longitude, latitude, heading, length) {
             // console.log(heading);
             // Convert heading to radians and calculate the base position
@@ -118,6 +141,8 @@
                 // const shipname = urlParams.get('shipname') || '';
 
                 const shipname = document.getElementById('shipname').value;
+                console.log('Fetching data for shipname:', shipname);
+
                 const startTime = document.getElementById('start').value;
                 const endTime = document.getElementById('end').value;
                 const minLat = document.getElementById('minLat').value;
