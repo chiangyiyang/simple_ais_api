@@ -140,11 +140,11 @@
                     queryParams.set('max_lon', maxLon);
                 }
 
-                console.log(queryParams.toString());
+                // console.log(queryParams.toString());
 
                 const response = await fetch(`/api/ais/history?${queryParams.toString()}`);
                 const data = await response.json();
-                console.log(data);
+                // console.log(data);
 
                 viewer.entities.removeAll();
 
